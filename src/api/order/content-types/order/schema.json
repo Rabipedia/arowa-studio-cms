@@ -1,0 +1,124 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "orderNumber": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "customer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "orders"
+    },
+    "guestEmail": {
+      "type": "email"
+    },
+    "guestName": {
+      "type": "string"
+    },
+    "orderStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "pending_payment",
+      "enum": [
+        "pending_payment",
+        "paid",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "refunded"
+      ]
+    },
+    "shippingAddress": {
+      "type": "component",
+      "component": "shared.address",
+      "repeatable": false,
+      "required": true
+    },
+    "shippingMethod": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::shipping-method.shipping-method"
+    },
+    "shippingMethodLabel": {
+      "type": "string"
+    },
+    "shippingCost": {
+      "type": "decimal",
+      "required": true
+    },
+    "taxRate": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::tax-rate.tax-rate"
+    },
+    "taxRateSnapshot": {
+      "type": "decimal",
+      "required": true
+    },
+    "taxAmount": {
+      "type": "decimal",
+      "required": true
+    },
+    "subtotal": {
+      "type": "decimal",
+      "required": true
+    },
+    "total": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "string",
+      "default": "AED",
+      "required": true
+    },
+    "stripePaymentIntentId": {
+      "type": "string"
+    },
+    "paymentStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "unpaid",
+      "enum": [
+        "unpaid",
+        "paid",
+        "failed",
+        "refunded"
+      ]
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "card",
+        "cash_on_delivery"
+      ]
+    },
+    "codFeeSnapshot": {
+      "type": "decimal"
+    },
+    "placedAt": {
+      "type": "datetime"
+    },
+    "items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::order-item.order-item",
+      "mappedBy": "order"
+    }
+  }
+}

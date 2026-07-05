@@ -1,0 +1,25 @@
+{
+  "kind": "singleType",
+  "collectionName": "store_configs",
+  "info": {
+    "singularName": "store-config",
+    "pluralName": "store-configs",
+    "displayName": "StoreConfig"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "codFee": {
+      "type": "decimal",
+      "required": true,
+      "default": 12
+    },
+    "codMaxOrderValue": {
+      "type": "decimal",
+      "required": true,
+      "default": 2500
+    }
+  }
+}

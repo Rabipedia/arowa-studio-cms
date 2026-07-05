@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tax_rates",
+  "info": {
+    "singularName": "tax-rate",
+    "pluralName": "tax-rates",
+    "displayName": "TaxRate"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "rate": {
+      "type": "decimal",
+      "required": true
+    },
+    "region": {
+      "type": "string"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

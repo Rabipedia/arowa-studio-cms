@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shipping_methods",
+  "info": {
+    "singularName": "shipping-method",
+    "pluralName": "shipping-methods",
+    "displayName": "ShippingMethod"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "cost": {
+      "type": "decimal",
+      "required": true
+    },
+    "estimatedDays": {
+      "type": "string"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}
