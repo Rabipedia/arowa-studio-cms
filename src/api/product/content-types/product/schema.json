@@ -67,6 +67,14 @@
     },
     "description": {
       "type": "richtext"
+    },
+    "isTrending": {
+      "type": "boolean",
+      "default": false
+    },
+    "isBest": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
