@@ -131,6 +131,7 @@ export default {
         }
 
         const orderNumber = `ARW-${Date.now().toString(36).toUpperCase()}`;
+        const accessToken = crypto.randomUUID();
         let order: any;
 
         await strapi.db.transaction(async () => {
@@ -154,6 +155,7 @@ export default {
                     currency: quote.currency,
                     codFeeSnapshot: quote.codFee,
                     placedAt: new Date(),
+                    accessToken,
                 }
             });
 
@@ -180,6 +182,51 @@ export default {
             }
         });
 
-        return { orderNumber, total: quote.total, currency: quote.currency };            
+        return { orderNumber, accessToken, total: quote.total, currency: quote.currency };            
     },
+
+    async findOrderByToken({
+        orderNumber,
+        token,
+    }: {
+        orderNumber?: string;
+        token?: string;
+    }) {
+        if(!orderNumber || !token) {
+            throw new Error("Order number and token are required");
+        }
+
+        const order = await strapi
+            .db.query("api::order.order")
+            .findOne({ 
+                where: {orderNumber},
+                populate: { items: true, shippingAddress: true} 
+            });
+
+            if(!order || order.accessToken !== token) return null;
+
+            return {
+                orderNumber: order.orderNumber,
+                orderStatus: order.orderStatus,
+                paymentStatus: order.paymentStatus,
+                paymentMethod: order.paymentMethod,
+                placedAt: order.placedAt,
+                subtotal: order.subtotal,
+                shippingCost: order.shippingCost,
+                shippingMethodLabel: order.shippingMethodLabel,
+                taxAmount: order.taxAmount,
+                codFeeSnapshot: order.codFeeSnapshot,
+                total: order.total,
+                currency: order.currency,
+                guestName: order.guestName,
+                shippingAddress: order.shippingAddress,
+                items: (order.items ?? []).map((i: any) => ({
+                    productNameSnapshot: i.productNameSnapshot,
+                    variantLabelSnapshot: i.variantLabelSnapshot,
+                    unitPriceSnapshot: i.unitPriceSnapshot,
+                    quantity: i.quantity,
+                    lineTotal: i.lineTotal,
+                })),
+            };
+    }
 }

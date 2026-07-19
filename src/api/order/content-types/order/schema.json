@@ -119,6 +119,10 @@
       "relation": "oneToMany",
       "target": "api::order-item.order-item",
       "mappedBy": "order"
+    },
+    "accessToken": {
+      "type": "string",
+      "private": true
     }
   }
 }

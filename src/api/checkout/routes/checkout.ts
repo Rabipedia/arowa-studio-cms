@@ -11,6 +11,12 @@ export default {
             path: "/checkout/place-cod-order",
             handler: "checkout.placeCod",
             config: { auth: false },
+        },
+        {
+            method: "GET",
+            path: "/checkout/order/:orderNumber",
+            handler: "checkout.findOrder",
+            config: { auth: false },
         }
     ],
 };

@@ -22,4 +22,19 @@ export default {
             ctx.badRequest(err.message, { issues: err.issues });
         }
     },
+
+    async findOrder(ctx: any) {
+        const { orderNumber } = ctx.params;
+        const { token } = ctx.query;
+
+        try {
+            const order = await strapi
+                .service("api::checkout.checkout")
+                .findOrderByToken({ orderNumber, token});
+            if(!order) return ctx.notFound("Order not found!");
+            ctx.body = order;
+        } catch(err: any) {
+            ctx.badRequest(err.message);
+        }
+    }
 };
