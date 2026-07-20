@@ -17,6 +17,18 @@ export default {
             path: "/checkout/order/:orderNumber",
             handler: "checkout.findOrder",
             config: { auth: false },
+        },
+        {
+            method: "POST",
+            path: "/checkout/create-payment-intent",
+            handler: "checkout.createPaymentIntent",
+            config: { auth: false },
+        },
+        {
+            method: "POST",
+            path: "/stripe/webhook",
+            handler: "checkout.stripeWebhook",
+            config: { auth: false },
         }
     ],
 };

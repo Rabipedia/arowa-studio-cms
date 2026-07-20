@@ -1,3 +1,6 @@
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 
 export default {
@@ -228,5 +231,146 @@ export default {
                     lineTotal: i.lineTotal,
                 })),
             };
+    },
+
+    async createCardPaymentIntent({
+        items,
+        shippingMethodId,
+        contact,
+        shippingAddress,
+        customerId,
+    }: {
+        items: { variantId: string; quantity: number}[];
+        shippingMethodId?: string;
+        contact: { email: string; name?: string; phone?: string };
+        shippingAddress: Record<string, unknown>;
+        customerId?: number;
+    }) {
+        const quote = await strapi
+            .service("api::checkout.checkout")
+            .computeQuote({ items, shippingMethodId, paymentMethod: "card"});
+
+        if(quote.issues.length > 0) {
+            const err: any = new Error("Some items are unavailable.");
+            err.issues = quote.issues;
+            throw err;
+        }
+        if(!contact?.email) {
+            throw new Error("Email is required.")
+        }
+
+        const orderNumber = `ARW-${Date.now().toString(36).toUpperCase()}`;
+        const accessToken = crypto.randomUUID();
+        let order: any;
+
+        await strapi.db.transaction(async () => {
+            order = await strapi.documents("api::order.order").create({
+                data: {
+                    orderNumber,
+                    accessToken,
+                    customer: customerId ?? undefined,
+                    guestEmail: contact.email,
+                    guestName: contact.name ?? undefined,
+                    orderStatus: "pending_payment",
+                    paymentStatus: "unpaid",
+                    paymentMethod: "card",
+                    shippingAddress: shippingAddress as any,
+                    shippingMethod: shippingMethodId ?? undefined,
+                    shippingMethodLabel: quote.shippingMethodLabel ?? undefined,
+                    shippingCost: quote.shippingCost,
+                    taxRateSnapshot: quote.taxRatePercent,
+                    taxAmount: quote.taxAmount,
+                    subtotal: quote.subtotal,
+                    total: quote.total,
+                    currency: quote.currency,
+                    codFeeSnapshot: 0,
+                    placedAt: new Date(),
+                }
+            });
+
+            for(const line of quote.lines) {
+                await strapi.documents("api::order-item.order-item").create({
+                    data: {
+                        order: order.documentId,
+                        productVariant: line.variantId,
+                        productNameSnapshot: line.productName,
+                        variantLabelSnapshot: line.variantLabel ?? undefined,
+                        unitPriceSnapshot: line.unitPrice,
+                        quantity: line.quantity,
+                        lineTotal: line.lineTotal,
+                    },
+                });
+            }
+        });
+
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(quote.total * 100),
+            currency: "aed",
+            metadata: { orderNumber },
+            automatic_payment_methods: { enabled: true },
+        });
+
+        await strapi.documents("api::order.order").update({
+            documentId: order.documentId,
+            data: { stripePaymentIntentId: paymentIntent.id },
+        });
+
+        return{
+            clientSecret: paymentIntent.client_secret,
+            orderNumber,
+            accessToken,
+            total: quote.total,
+            currency: quote.currency,
+        }
+    },
+
+    async handleStripeEvent(rawBody: string, signature: string) {
+        const event = stripe.webhooks.constructEvent(
+            rawBody,
+            signature,
+            process.env.STRIPE_WEBHOOK_SECRET as string,
+        );
+
+        if(event.type !== "payment_intent.succeeded") {
+            return { received: true, ignored: event.type }
+        }
+
+        const paymentIntent = event.data.object as any;
+        const orderNumber = paymentIntent.metadata?.orderNumber;
+        if(!orderNumber) return { received: true, ignored: "no orderNumber" };
+
+        const order = await strapi.db.query("api::order.order").findOne({
+            where: { orderNumber },
+            populate: { items: true },
+        });
+        if(!order) return { received: true, ignored: "order not found"};
+
+        if(order.paymentStatus === "paid") {
+            return { received: true, ignored: "already paid"}
+        }
+
+        await strapi.db.transaction(async () => {
+            await strapi.documents("api::order.order").update({
+                documentId: order.documentId,
+                data: { paymentStatus: "paid", orderStatus: "paid" }, 
+            });
+
+            for(const item of order.items ?? []) {
+                const orderItem = await strapi.db
+                    .query("api::order-item.order-item")
+                    .findOne({
+                        where: { id: item.id },
+                        populate: { productVariant: true },
+                    });
+                const variant = orderItem?.productVariant;
+                if(!variant) continue;
+
+                await strapi.documents("api::product-variant.product-variant").update({
+                    documentId: variant.documentId,
+                    data: { stock: variant.stock - orderItem.quantity },
+                });
+            }
+        });
+        return { received: true, orderNumber };
     }
 }
