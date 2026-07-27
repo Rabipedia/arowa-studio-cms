@@ -40,6 +40,14 @@
       "relation": "oneToMany",
       "target": "api::product.product",
       "mappedBy": "category"
+    },
+    "showInNav": {
+      "type": "boolean",
+      "default": false
+    },
+    "navOrder": {
+      "type": "integer",
+      "default": 0
     }
   }
 }
