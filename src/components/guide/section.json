@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_guide_sections",
+  "info": {
+    "displayName": "Section"
+  },
+  "options": {},
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "richtext",
+      "required": true
+    }
+  }
+}
