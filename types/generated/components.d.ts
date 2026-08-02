@@ -1,5 +1,27 @@
 import type { Schema, Struct } from '@strapi/strapi';
 
+export interface GuideFaq extends Struct.ComponentSchema {
+  collectionName: 'components_guide_faqs';
+  info: {
+    displayName: 'Faq';
+  };
+  attributes: {
+    answer: Schema.Attribute.Text & Schema.Attribute.Required;
+    question: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface GuideSection extends Struct.ComponentSchema {
+  collectionName: 'components_guide_sections';
+  info: {
+    displayName: 'Section';
+  };
+  attributes: {
+    body: Schema.Attribute.RichText & Schema.Attribute.Required;
+    heading: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface SharedAddress extends Struct.ComponentSchema {
   collectionName: 'components_shared_addresses';
   info: {
@@ -22,6 +44,8 @@ export interface SharedAddress extends Struct.ComponentSchema {
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
+      'guide.faq': GuideFaq;
+      'guide.section': GuideSection;
       'shared.address': SharedAddress;
     }
   }
