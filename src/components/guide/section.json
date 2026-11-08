@@ -12,6 +12,9 @@
     "body": {
       "type": "richtext",
       "required": true
+    },
+    "videoUrl": {
+      "type": "string"
     }
   }
 }

@@ -17,6 +17,24 @@ export default {
             throw new Error("Cart is empty");
         }
 
+        if (items.length > 50) {
+            throw new Error("Too many items in cart");
+        }
+
+        for (const item of items) {
+            if (
+                typeof item?.quantity !== "number" ||
+                !Number.isInteger(item.quantity) ||
+                item.quantity < 1 ||
+                item.quantity > 100
+            ) {
+                throw new Error("Invalid quantity");
+            }
+            if (typeof item?.variantId !== "string" || item.variantId.length === 0) {
+                throw new Error("Invalid item");
+            }
+        }
+
         const variantIds = items.map((i) => i.variantId);
         const variants = await strapi.db
             .query("api::product-variant.product-variant")

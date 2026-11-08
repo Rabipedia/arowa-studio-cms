@@ -17,7 +17,12 @@ const config: Core.Config.Middlewares = [
       },
     },
   },
-  'strapi::cors',
+  {
+    name: 'strapi::cors',
+    config: {
+      origin: ['https://www.arowastudio.com', 'https://arowastudio.com', 'http://localhost:3000'],
+    },
+  },
   'strapi::poweredBy',
   'strapi::query',
   {
